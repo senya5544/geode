@@ -334,6 +334,7 @@ static const char* permissionToName(Permission permission) {
     switch (permission) {
     case Permission::RecordAudio: return PERM("RECORD_AUDIO");
     case Permission::ReadAllFiles: return INTERNAL_PERM("MANAGE_ALL_FILES");
+    case Permission::BluetoothScan: return PERM("BLUETOOTH_SCAN");
     }
 #undef PERM
 #undef INTERNAL_PERM
