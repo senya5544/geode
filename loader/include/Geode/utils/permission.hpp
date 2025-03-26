@@ -7,7 +7,8 @@ namespace geode::utils::permission {
     enum class Permission {
         ReadAllFiles = 0x3, // maintain compatibility with some older mods
         RecordAudio,
-        BluetoothScan
+        BluetoothScan,
+        BluetoothConnect
     };
 
     /**
