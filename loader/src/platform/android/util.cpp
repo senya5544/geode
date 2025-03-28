@@ -7,6 +7,7 @@ using namespace geode::prelude;
 #include <filesystem>
 #include <Geode/utils/general.hpp>
 #include <Geode/utils/permission.hpp>
+#include <Geode/utils/BluetoothLE.hpp>
 #include <Geode/utils/Task.hpp>
 #include <Geode/loader/Loader.hpp>
 #include <Geode/binding/AppDelegate.hpp>
@@ -399,4 +400,100 @@ void geode::utils::thread::platformSetName(std::string const& name) {
 std::string geode::utils::getEnvironmentVariable(const char* name) {
     auto result = std::getenv(name);
     return result ? result : "";
+}
+
+static std::function<void(jobject)> s_onScanResultCallback;
+static std::function<void(jobject, jint, jint)> s_onConnectionStateChangeCallback;
+static std::function<void(jobject, jint)> s_onServicesDiscoveredCallback;
+static std::function<void(jobject, jobject, jbyteArray, jint)> s_onCharacteristicReadCallback;
+static std::function<void(jobject, jobject, jbyteArray)> s_onCharacteristicChangedCallback;
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_bleOnScanResultCallback(
+        JNIEnv* env,
+        jobject,
+        jobject result
+) {
+    if(s_onScanResultCallback) {
+        Loader::get()->queueInMainThread([granted] {
+            s_onScanResultCallback(granted);
+        });
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_bleOnConnectionStateChangeCallback(
+        JNIEnv* env,
+        jobject,
+        jobject gatt,
+        jint status,
+        jint state
+) {
+    if(s_onConnectionStateChangeCallback) {
+        Loader::get()->queueInMainThread([gatt, status, state] {
+            s_onConnectionStateChangeCallback(gatt, status, state);
+        });
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_bleOnServicesDiscoveredCallback(
+        JNIEnv* env,
+        jobject,
+        jobject gatt,
+        jint status
+) {
+    if(s_onServicesDiscoveredCallback) {
+        Loader::get()->queueInMainThread([gatt, status] {
+            s_onServicesDiscoveredCallback(gatt, status);
+        });
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_bleOnCharacteristicReadCallback(
+        JNIEnv* env,
+        jobject,
+        jobject gatt,
+        jobject characteristic,
+        jbyteArray value,
+        jint status
+) {
+    if(s_onCharacteristicReadCallback) {
+        Loader::get()->queueInMainThread([gatt, characteristic, value, status] {
+            s_onCharacteristicReadCallback(gatt, characteristic, value, status);
+        });
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_bleOnCharacteristicChangedCallback(
+        JNIEnv* env,
+        jobject,
+        jobject gatt,
+        jobject characteristic,
+        jbyteArray value
+) {
+    if(s_onCharacteristicChangedCallback) {
+        Loader::get()->queueInMainThread([gatt, characteristic, value] {
+            s_onCharacteristicChangedCallback(gatt, characteristic, value);
+        });
+    }
+}
+
+
+void geode::utils::BluetoothLE::setOnScanResultCallback(std::function<void(jobject)> callback) {
+    s_onScanResultCallback = callback;
+}
+void geode::utils::BluetoothLE::setOnConnectionStateChangeCallback(std::function<void(jobject, jint, jint)> callback) {
+    s_onConnectionStateChangeCallback = callback;
+}
+void geode::utils::BluetoothLE::setOnServicesDiscoveredCallback(std::function<void(jobject, jint)> callback) {
+    s_onServicesDiscoveredCallback = callback;
+}
+void geode::utils::BluetoothLE::setOnCharacteristicReadCallback(std::function<void(jobject, jobject, jbyteArray, jint)> callback) {
+    s_onCharacteristicReadCallback = callback;
+}
+void geode::utils::BluetoothLE::setOnCharacteristicChangedCallback(std::function<void(jobject, jobject, jbyteArray)> callback) {
+    s_onCharacteristicChangedCallback = callback;
 }
