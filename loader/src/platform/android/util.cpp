@@ -415,8 +415,8 @@ JNIEXPORT void JNICALL Java_com_geode_launcher_utils_GeodeUtils_bleOnScanResultC
         jobject result
 ) {
     if(s_onScanResultCallback) {
-        Loader::get()->queueInMainThread([granted] {
-            s_onScanResultCallback(granted);
+        Loader::get()->queueInMainThread([result] {
+            s_onScanResultCallback(result);
         });
     }
 }

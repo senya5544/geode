@@ -1,7 +1,14 @@
 #pragma once
 
 #include <Geode/DefaultInclude.hpp>
-#include <jni.h>
+
+#ifdef GEODE_IS_ANDROID
+    #include <jni.h>
+#else
+    class jobject;
+    class jint;
+    class jbyteArray;
+#endif
 
 namespace geode::utils::BluetoothLE {
     void GEODE_DLL setOnScanResultCallback(std::function<void(jobject)> callback);
